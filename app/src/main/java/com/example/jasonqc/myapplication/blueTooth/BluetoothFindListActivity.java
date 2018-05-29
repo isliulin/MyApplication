@@ -95,7 +95,7 @@ public class BluetoothFindListActivity extends Activity {
                     pairedBlueAdapter.notifyDataSetChanged();
                 }else if(device.getBondState()!=BluetoothDevice.BOND_BONDED)
                 {
-                  Log.e("新发现设备","不做任何处理");
+                  Log.d("新发现设备","不做任何处理");
                 }
             }else if(action.equals(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)){
                 Toast.makeText(context, "蓝牙扫描完毕", Toast.LENGTH_SHORT).show();

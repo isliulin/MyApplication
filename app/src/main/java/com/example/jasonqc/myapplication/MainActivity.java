@@ -34,7 +34,7 @@ public class MainActivity extends AppCompatActivity {
     volatile int rangeTimes = 0;
 
     /******************************************/
-    byte[] blueDataFrame = new byte[]{(byte) 0xA5, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    final byte[] blueDataFrame = new byte[]{(byte) 0xA5, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x023};
     /*****************************************/
     /*activity_main.xml id declare*/
@@ -48,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
     ExecutorService exec = Executors.newCachedThreadPool();
     Socket clientSocket = null;
     BluetoothSocketUtil bluetoothSocketUtil;
+
 
     /**************************************/
     @Override
@@ -69,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
             if (TextUtils.isEmpty(sendTcpTxt.getText())) {
                 Toast.makeText(this, "请输入数据", Toast.LENGTH_SHORT).show();
             } else {
-                exec.execute(new TcpClientSendMessage(sendTcpTxt.getText().toString(), clientSocket));
+                exec.execute(new TcpClientSendMessage(sendTcpTxt.getText().toString().getBytes(), clientSocket));
             }
         }
     }
@@ -128,26 +129,26 @@ public class MainActivity extends AppCompatActivity {
                             UWB101IDRangePermission = false;
                             rangeRequireFrame = groupmessage(UWB101ID);
                             bluetoothSocketOutputStream.write(rangeRequireFrame);
-                            Log.d("测距请求帧已发送","101");
+                            Log.d("测距请求帧已发送", "101");
                         } else if (UWB102IDRangePermission) {
                             UWB102IDRangePermission = false;
                             rangeRequireFrame = groupmessage(UWB102ID);
                             bluetoothSocketOutputStream.write(rangeRequireFrame);
-                            Log.d("测距请求帧已发送","102");
+                            Log.d("测距请求帧已发送", "102");
                         } else if (UWB103IDRangePermission) {
                             UWB103IDRangePermission = false;
                             rangeRequireFrame = groupmessage(UWB103ID);
                             bluetoothSocketOutputStream.write(rangeRequireFrame);
-                            Log.d("测距请求帧已发送","103");
+                            Log.d("测距请求帧已发送", "103");
                         } else if (UWB104IDRangePermission) {
                             UWB104IDRangePermission = false;
                             rangeRequireFrame = groupmessage(UWB104ID);
                             bluetoothSocketOutputStream.write(rangeRequireFrame);
-                            Log.d("测距请求帧已发送","104");
+                            Log.d("测距请求帧已发送", "104");
                         }
                     }
                 } else {
-                    Toast.makeText(this, "请先建立连接", Toast.LENGTH_SHORT).show();
+                    Log.e("func oneblueSend","蓝牙微连接");
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -167,65 +168,69 @@ public class MainActivity extends AppCompatActivity {
             if (bluetoothSocket != null && bluetoothSocket.isConnected()) {
                 try {
                     bluetoothSocketInputStream = bluetoothSocket.getInputStream();
-                    while ((len = bluetoothSocketInputStream.read(blueRecvBytes)) != -1) {
+                    while ((len = bluetoothSocketInputStream.read(blueRecvBytes,0,68)) != -1) {
                         if (len < 54) {
                             Log.d("func blueRecv", "接收长度不符合要求");
+                            UWB101IDRangePermission = true;
+                            UWB102IDRangePermission = false;
+                            UWB103IDRangePermission = false;
+                            UWB104IDRangePermission = false;
                             continue;
                         }
-                        String blueRecvStr = new String(blueRecvBytes, 0, len);
-                        Log.d("blueRecvStr", blueRecvStr);
-                        byte[] blueRecvRange = blueRecvStr.getBytes();
-                        Log.d("blueRecvRange", String.valueOf(blueRecvRange.length == blueRecvStr.length()));
-                        int responseUWBNode = ((blueRecvRange[22] & 0xff) << 24) + ((blueRecvRange[23] & 0xff)
-                                << 16) + ((blueRecvRange[24] & 0xff) << 8) + (blueRecvRange[25] & 0xff);
-                        Log.d("responseUWBNode", String.valueOf(responseUWBNode));
-                        int PRMerror = (blueRecvRange[43] & 0xff) << 8 + blueRecvRange[44] & 0xff;
-                        Log.d("PRMerror", String.valueOf(PRMerror));
-                        if (blueRecvRange[26] == 0x00) {
+                        int responseUWBNode = ((blueRecvBytes[22] & 0xff) << 24) + ((blueRecvBytes[23] & 0xff)
+                                << 16) + ((blueRecvBytes[24] & 0xff) << 8) + (blueRecvBytes[25] & 0xff);
+                        int PRMerror = (blueRecvBytes[43] & 0xff) << 8 + blueRecvBytes[44] & 0xff;
+                        if (blueRecvBytes[26] == 0x00) {
+                            Log.d("blueRecvBytes.length", String.valueOf(len));
+                            Log.d("PRMerror", String.valueOf(PRMerror));
+                            Log.d("responseUWBNode", String.valueOf(responseUWBNode));
+                            Log.d("蓝牙接收", "测距成功");
 //                            测距状态为0x00 为测距成功
-                            synchronized (blueDataFrame) {
-                                switch (responseUWBNode) {
-                                    case 101:
-                                        Log.d("responseUWBNode", "101");
-                                        blueDataFrame[2] = blueRecvRange[30];
-                                        blueDataFrame[3] = blueRecvRange[31];
-                                        blueDataFrame[4] = blueRecvRange[32];
-                                        blueDataFrame[5] = blueRecvRange[33];
-                                        UWB102IDRangePermission = true;
-                                        break;
-                                    case 102:
-                                        blueDataFrame[6] = blueRecvRange[30];
-                                        blueDataFrame[7] = blueRecvRange[31];
-                                        blueDataFrame[8] = blueRecvRange[32];
-                                        blueDataFrame[9] = blueRecvRange[33];
-                                        UWB103IDRangePermission = true;
-                                        break;
-                                    case 103:
-                                        blueDataFrame[10] = blueRecvRange[30];
-                                        blueDataFrame[11] = blueRecvRange[31];
-                                        blueDataFrame[12] = blueRecvRange[32];
-                                        blueDataFrame[13] = blueRecvRange[33];
-                                        UWB104IDRangePermission = true;
-                                        break;
-                                    case 104:
-                                        blueDataFrame[14] = blueRecvRange[30];
-                                        blueDataFrame[15] = blueRecvRange[31];
-                                        blueDataFrame[16] = blueRecvRange[32];
-                                        blueDataFrame[17] = blueRecvRange[33];
-                                        rangeTimes--;
-                                        sendBlueDataFrameByTCP(); //将数据帧发送至服务器
-                                        UWB101IDRangePermission = true;
-                                        UWB102IDRangePermission = false;
-                                        UWB103IDRangePermission = false;
-                                        UWB104IDRangePermission = false;
-                                        break;
-                                    default:
-                                        Log.d("func blueRecv switch", "No such UWBNode");
-                                        break;
-                                }
-                                Log.d("blueDataFrame", blueDataFrame.toString());
+                            switch (responseUWBNode) {
+                                case 101:
+                                    Log.d("case101", "101接收完毕");
+                                    blueDataFrame[2] = blueRecvBytes[30];
+                                    blueDataFrame[3] = blueRecvBytes[31];
+                                    blueDataFrame[4] = blueRecvBytes[32];
+                                    blueDataFrame[5] = blueRecvBytes[33];
+                                    UWB102IDRangePermission = true;
+                                    break;
+                                case 102:
+                                    Log.d("case102", "102接收完毕");
+                                    blueDataFrame[6] = blueRecvBytes[30];
+                                    blueDataFrame[7] = blueRecvBytes[31];
+                                    blueDataFrame[8] = blueRecvBytes[32];
+                                    blueDataFrame[9] = blueRecvBytes[33];
+                                    UWB103IDRangePermission = true;
+                                    break;
+                                case 103:
+                                    Log.d("case103", "103接收完毕");
+                                    blueDataFrame[10] = blueRecvBytes[30];
+                                    blueDataFrame[11] = blueRecvBytes[31];
+                                    blueDataFrame[12] = blueRecvBytes[32];
+                                    blueDataFrame[13] = blueRecvBytes[33];
+                                    UWB104IDRangePermission = true;
+                                    break;
+                                case 104:
+                                    Log.d("case104", "104接收完毕");
+                                    blueDataFrame[14] = blueRecvBytes[30];
+                                    blueDataFrame[15] = blueRecvBytes[31];
+                                    blueDataFrame[16] = blueRecvBytes[32];
+                                    blueDataFrame[17] = blueRecvBytes[33];
+                                    rangeTimes--;
+                                    sendBlueDataFrameByTCP(blueDataFrame); //将数据帧发送至服务器
+                                    UWB101IDRangePermission = true;
+                                    UWB102IDRangePermission = false;
+                                    UWB103IDRangePermission = false;
+                                    UWB104IDRangePermission = false;
+                                    break;
+                                default:
+                                    Log.d("func blueRecv switch", "No such UWBNode");
+                                    break;
                             }
+                            Log.d("blueDataFrame", blueDataFrame.toString());
                         } else {
+                            Log.e("测距失败重新测距", String.valueOf(responseUWBNode));
                             switch (responseUWBNode) {
                                 case 101:
                                     UWB101IDRangePermission = true;
@@ -240,6 +245,10 @@ public class MainActivity extends AppCompatActivity {
                                     UWB102IDRangePermission = true;
                                     break;
                                 default:
+                                    UWB101IDRangePermission = true;
+                                    UWB102IDRangePermission = false;
+                                    UWB103IDRangePermission = false;
+                                    UWB104IDRangePermission = false;
                                     break;
                             }
                         }
@@ -276,8 +285,8 @@ public class MainActivity extends AppCompatActivity {
             toCRCbytes[i] = send_package[i + 4];
         }
         int CRCcodeInt = getCRC1021(toCRCbytes);// 获取int型校验码
-        send_package[17] = Integer.valueOf ((CRCcodeInt >> 8) & 0xff).byteValue();
-        send_package[18] = Integer.valueOf (CRCcodeInt & 0xff).byteValue();
+        send_package[17] = Integer.valueOf((CRCcodeInt >> 8) & 0xff).byteValue();
+        send_package[18] = Integer.valueOf(CRCcodeInt & 0xff).byteValue();
         return send_package;
     }
 
@@ -299,13 +308,11 @@ public class MainActivity extends AppCompatActivity {
         return crc;
     }
 
-    private void sendBlueDataFrameByTCP() {
+    private void sendBlueDataFrameByTCP(byte[] sendDataByTcp) {
         if (clientSocket == null) {
-            Toast.makeText(this, "请先建立连接", Toast.LENGTH_SHORT).show();
+            Log.d("sendBlueDataFrameByTCP", "clientSocket == null");
         } else {
-            synchronized (blueDataFrame) {
-                exec.execute(new TcpClientSendMessage(blueDataFrame.toString(), clientSocket));
-            }
+            exec.execute(new TcpClientSendMessage(sendDataByTcp, clientSocket));
         }
     }
 }

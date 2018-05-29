@@ -8,9 +8,9 @@ import java.net.Socket;
 
 public class TcpClientSendMessage implements Runnable {
     Socket clientSocket;
-    String sendMessage;
+    byte[] sendMessage;
 
-    public TcpClientSendMessage(String sendMessage, Socket clientSocket) {
+    public TcpClientSendMessage(byte[] sendMessage, Socket clientSocket) {
         this.clientSocket = clientSocket;
         this.sendMessage = sendMessage;
     }
@@ -20,8 +20,8 @@ public class TcpClientSendMessage implements Runnable {
         DataOutputStream dos = null;
         try {
             dos = new DataOutputStream(clientSocket.getOutputStream());
-            Log.d("tcpSendToHost",sendMessage);
-            dos.writeBytes(sendMessage);
+            Log.d("tcpSendToHost",sendMessage.toString());
+            dos.write(sendMessage);
         } catch (IOException e) {
             e.printStackTrace();
         }
