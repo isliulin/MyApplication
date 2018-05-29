@@ -77,7 +77,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:onClick="sendTcpData"
-                android:text="WIFI发送" />
+                android:text="WIFI测试" />
 
             <Button
                 android:id="@+id/disconnectButton"
@@ -128,6 +128,30 @@
                 android:layout_weight="1"
                 android:onClick="oneblueSend"
                 android:text="一次测距" />
+
+            <Button
+                android:id="@+id/tenblueSendButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:onClick="tenblueSend"
+                android:text="十次测距" />
+
+            <Button
+                android:id="@+id/trailblueSendButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:onClick="trailblueSend"
+                android:text="轨迹追踪" />
+
+            <Button
+                android:id="@+id/trailQuitblueSendButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:onClick="trailQuitblueSend"
+                android:text="取消追踪" />
 
         </LinearLayout>
     </LinearLayout>

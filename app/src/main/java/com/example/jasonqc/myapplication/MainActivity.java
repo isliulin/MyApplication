@@ -32,6 +32,9 @@ public class MainActivity extends AppCompatActivity {
     volatile boolean UWB103IDRangePermission = false;
     volatile boolean UWB104IDRangePermission = false;
     volatile int rangeTimes = 0;
+    boolean trailCommt = false;
+    boolean isRanging = false;
+
 
     /******************************************/
     final byte[] blueDataFrame = new byte[]{(byte) 0xA5, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -114,48 +117,69 @@ public class MainActivity extends AppCompatActivity {
         bluetoothSocketUtil.closeBluetooth();
     }
 
-    private void blueSendRangeRequest(){
-        exec.execute(() -> {
-            byte[] rangeRequireFrame = null;
-            BluetoothSocket bluetoothSocket = bluetoothSocketUtil.getBluetoothSocket();
-            OutputStream bluetoothSocketOutputStream;
-            try {
-                if (bluetoothSocket != null && bluetoothSocket.isConnected()) {
-                    bluetoothSocketOutputStream = bluetoothSocket.getOutputStream();
-                    while (rangeTimes > 0) {
-                        if (UWB101IDRangePermission) {
-                            UWB101IDRangePermission = false;
-                            rangeRequireFrame = groupmessage(UWB101ID);
-                            bluetoothSocketOutputStream.write(rangeRequireFrame);
-                            Log.d("测距请求帧已发送", "101");
-                        } else if (UWB102IDRangePermission) {
-                            UWB102IDRangePermission = false;
-                            rangeRequireFrame = groupmessage(UWB102ID);
-                            bluetoothSocketOutputStream.write(rangeRequireFrame);
-                            Log.d("测距请求帧已发送", "102");
-                        } else if (UWB103IDRangePermission) {
-                            UWB103IDRangePermission = false;
-                            rangeRequireFrame = groupmessage(UWB103ID);
-                            bluetoothSocketOutputStream.write(rangeRequireFrame);
-                            Log.d("测距请求帧已发送", "103");
-                        } else if (UWB104IDRangePermission) {
-                            UWB104IDRangePermission = false;
-                            rangeRequireFrame = groupmessage(UWB104ID);
-                            bluetoothSocketOutputStream.write(rangeRequireFrame);
-                            Log.d("测距请求帧已发送", "104");
+    private void blueSendRangeRequest() {
+        if (!isRanging) {
+            exec.execute(() -> {
+                isRanging = true;
+                byte[] rangeRequireFrame = null;
+                BluetoothSocket bluetoothSocket = bluetoothSocketUtil.getBluetoothSocket();
+                OutputStream bluetoothSocketOutputStream;
+                try {
+                    if (bluetoothSocket != null && bluetoothSocket.isConnected()) {
+                        bluetoothSocketOutputStream = bluetoothSocket.getOutputStream();
+                        while (rangeTimes > 0 || trailCommt) {
+                            if (UWB101IDRangePermission) {
+                                UWB101IDRangePermission = false;
+                                rangeRequireFrame = groupmessage(UWB101ID);
+                                bluetoothSocketOutputStream.write(rangeRequireFrame);
+                                Log.d("测距请求帧已发送", "101");
+                            } else if (UWB102IDRangePermission) {
+                                UWB102IDRangePermission = false;
+                                rangeRequireFrame = groupmessage(UWB102ID);
+                                bluetoothSocketOutputStream.write(rangeRequireFrame);
+                                Log.d("测距请求帧已发送", "102");
+                            } else if (UWB103IDRangePermission) {
+                                UWB103IDRangePermission = false;
+                                rangeRequireFrame = groupmessage(UWB103ID);
+                                bluetoothSocketOutputStream.write(rangeRequireFrame);
+                                Log.d("测距请求帧已发送", "103");
+                            } else if (UWB104IDRangePermission) {
+                                UWB104IDRangePermission = false;
+                                rangeRequireFrame = groupmessage(UWB104ID);
+                                bluetoothSocketOutputStream.write(rangeRequireFrame);
+                                Log.d("测距请求帧已发送", "104");
+                            }
                         }
+                        isRanging = false;
+                    } else {
+                        Log.e("func oneblueSend", "蓝牙未连接");
                     }
-                } else {
-                    Log.e("func oneblueSend", "蓝牙未连接");
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
+            });
+        } else {
+            Toast.makeText(this, "请等待上一次测距命令结束", Toast.LENGTH_SHORT).show();
+        }
     }
+
     public void oneblueSend(View view) {
         rangeTimes = 1;
         blueSendRangeRequest();
+    }
+
+    public void tenblueSend(View view) {
+        rangeTimes = 10;
+        blueSendRangeRequest();
+    }
+
+    public void trailblueSend(View view) {
+        trailCommt = true;
+        blueSendRangeRequest();
+    }
+
+    public void trailQuitblueSend(View view) {
+        trailCommt = false;
     }
 
     public void blueRecv(View view) {
