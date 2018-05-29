@@ -15,27 +15,13 @@
     <ListView
         android:id="@+id/paired_devices"
         android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:descendantFocusability="blocksDescendants" />
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="#666"
-        android:paddingLeft="5dp"
-        android:text="新发现的设备："
-        android:textColor="#fff" />
-
-    <ListView
-        android:id="@+id/new_devices"
-        android:layout_width="match_parent"
-        android:layout_height="0dip"
-        android:layout_weight="2"
+        android:layout_height="520dp"
         android:descendantFocusability="blocksDescendants" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_weight="1"
         android:orientation="horizontal">
 
         <Button

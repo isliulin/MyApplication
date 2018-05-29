@@ -35,14 +35,9 @@ public class BluetoothFindListActivity extends Activity {
     Button searchBlueButtons;
     BluetoothAdapter mBluetoothAdapter;
     ListView pairedBlueText;
-    ListView newBlueText;
     ArrayAdapter pairedBlueAdapter;//适配器对象的定义
-    ArrayAdapter newBlueAdapter;//适配器对象的定义
     ArrayList<String> pairedBlueDeviceNames = new ArrayList<>();
-    ArrayList<String> newBlueDeviceNames = new ArrayList<>();
     ArrayList<BluetoothDevice> pairedBlueDevice = new ArrayList<>();
-    ArrayList<BluetoothDevice> newBlueDevice = new ArrayList<>();
-
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -50,7 +45,6 @@ public class BluetoothFindListActivity extends Activity {
         super.onCreate(savedInstanceState);
         backToMainActivityButton = findViewById(R.id.backToMainActivityButton);
         pairedBlueText = findViewById(R.id.paired_devices);
-        newBlueText = findViewById(R.id.new_devices);
         searchBlueButtons = findViewById(R.id.searchBlueButton);
         IntentFilter filter=new IntentFilter(BluetoothDevice.ACTION_FOUND);
         registerReceiver(blueScanReceiver,filter);
@@ -58,22 +52,14 @@ public class BluetoothFindListActivity extends Activity {
         registerReceiver(blueScanReceiver,filter2);
         //创建适配器,使用系统布局
         pairedBlueAdapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, pairedBlueDeviceNames);
-        newBlueAdapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, newBlueDeviceNames);
-        //给ListView设置适配器
+       //给ListView设置适配器
         pairedBlueText.setAdapter(pairedBlueAdapter);
-        newBlueText.setAdapter(newBlueAdapter);
-
         mBluetoothAdapter=BluetoothAdapter.getDefaultAdapter();
 
         pairedBlueText.setOnItemClickListener((parent, view, position, id) -> {
             Toast.makeText(this, "正在建立连接...", Toast.LENGTH_SHORT).show();
             connServer(pairedBlueDevice.get(position)); //与选中蓝牙设备建立连接
         });
-        newBlueText.setOnItemClickListener((parent, view, position, id) -> {
-            Toast.makeText(this, "正在建立连接...", Toast.LENGTH_SHORT).show();
-            connServer(pairedBlueDevice.get(position)); //与选中蓝牙设备建立连接
-        });
-
     }
 
     private void connServer(BluetoothDevice bluetoothDevice) {
@@ -109,9 +95,7 @@ public class BluetoothFindListActivity extends Activity {
                     pairedBlueAdapter.notifyDataSetChanged();
                 }else if(device.getBondState()!=BluetoothDevice.BOND_BONDED)
                 {
-                    newBlueDevice.add(device);
-                    newBlueDeviceNames.add(TextUtils.isEmpty(device.getName()) ? "未命名" : device.getName());
-                    newBlueAdapter.notifyDataSetChanged();
+                  Log.e("新发现设备","不做任何处理");
                 }
             }else if(action.equals(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)){
                 Toast.makeText(context, "蓝牙扫描完毕", Toast.LENGTH_SHORT).show();
@@ -122,9 +106,7 @@ public class BluetoothFindListActivity extends Activity {
         if (mBluetoothAdapter.isEnabled()) {
 //            清空ArrayList
             pairedBlueDeviceNames.clear();
-            newBlueDeviceNames.clear();
             pairedBlueAdapter.notifyDataSetChanged();
-            newBlueAdapter.notifyDataSetChanged();
             mBluetoothAdapter.startDiscovery();
         } else {
             Toast.makeText(this, "请先开启蓝牙", Toast.LENGTH_SHORT).show();
