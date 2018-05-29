@@ -114,9 +114,7 @@ public class MainActivity extends AppCompatActivity {
         bluetoothSocketUtil.closeBluetooth();
     }
 
-    public void oneblueSend(View view) {
-        oneblueSendButton.setEnabled(false);
-        rangeTimes = 1;
+    private void blueSendRangeRequest(){
         exec.execute(() -> {
             byte[] rangeRequireFrame = null;
             BluetoothSocket bluetoothSocket = bluetoothSocketUtil.getBluetoothSocket();
@@ -148,19 +146,28 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                 } else {
-                    Log.e("func oneblueSend","蓝牙微连接");
+                    Log.e("func oneblueSend", "蓝牙未连接");
                 }
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            oneblueSendButton.setEnabled(true);
         });
+    }
+    public void oneblueSend(View view) {
+        rangeTimes = 1;
+        blueSendRangeRequest();
     }
 
     public void blueRecv(View view) {
+        if (bluetoothSocketUtil.getBluetoothSocket() == null) {
+            Toast.makeText(this, "请先建立蓝牙连接", Toast.LENGTH_SHORT).show();
+            return;
+        }
         blueRecvSwitch.setEnabled(false);
         Log.d("蓝牙接收开启", "blueRecv");
         exec.execute(() -> {
+            int countNum = 0;
+            byte[] confirmAndDataFrame = new byte[68];
             BluetoothSocket bluetoothSocket = bluetoothSocketUtil.getBluetoothSocket();
             InputStream bluetoothSocketInputStream;
             byte[] blueRecvBytes = new byte[1024];
@@ -168,88 +175,89 @@ public class MainActivity extends AppCompatActivity {
             if (bluetoothSocket != null && bluetoothSocket.isConnected()) {
                 try {
                     bluetoothSocketInputStream = bluetoothSocket.getInputStream();
-                    while ((len = bluetoothSocketInputStream.read(blueRecvBytes,0,68)) != -1) {
-                        if (len < 54) {
-                            Log.d("func blueRecv", "接收长度不符合要求");
-                            UWB101IDRangePermission = true;
-                            UWB102IDRangePermission = false;
-                            UWB103IDRangePermission = false;
-                            UWB104IDRangePermission = false;
-                            continue;
-                        }
-                        int responseUWBNode = ((blueRecvBytes[22] & 0xff) << 24) + ((blueRecvBytes[23] & 0xff)
-                                << 16) + ((blueRecvBytes[24] & 0xff) << 8) + (blueRecvBytes[25] & 0xff);
-                        int PRMerror = (blueRecvBytes[43] & 0xff) << 8 + blueRecvBytes[44] & 0xff;
-                        if (blueRecvBytes[26] == 0x00) {
-                            Log.d("blueRecvBytes.length", String.valueOf(len));
-                            Log.d("PRMerror", String.valueOf(PRMerror));
-                            Log.d("responseUWBNode", String.valueOf(responseUWBNode));
-                            Log.d("蓝牙接收", "测距成功");
+                    while ((len = bluetoothSocketInputStream.read(blueRecvBytes)) != -1) {
+                        for (int i = 0; i < len; i++) {
+                            confirmAndDataFrame[countNum++] = blueRecvBytes[i];
+                            if (countNum == 68 && confirmAndDataFrame[0] == 0x0A &&
+                                    confirmAndDataFrame[1] == 0x0A && confirmAndDataFrame[15] == 0x0A
+                                    && confirmAndDataFrame[16] == 0x0A) {
+//                                一帧接收完成,并且帧头符合要求
+                                int responseUWBNode = ((confirmAndDataFrame[22] & 0xff) << 24) + ((confirmAndDataFrame[23] & 0xff)
+                                        << 16) + ((confirmAndDataFrame[24] & 0xff) << 8) + (confirmAndDataFrame[25] & 0xff);
+                                int PRMerror = (confirmAndDataFrame[43] & 0xff) << 8 + confirmAndDataFrame[44] & 0xff;
+                                if (confirmAndDataFrame[26] == 0x00) {
+                                    Log.d("blueRecvBytes.length", String.valueOf(len));
+                                    Log.d("PRMerror", String.valueOf(PRMerror));
+                                    Log.d("responseUWBNode", String.valueOf(responseUWBNode));
+                                    Log.d("蓝牙接收", "测距成功");
 //                            测距状态为0x00 为测距成功
-                            switch (responseUWBNode) {
-                                case 101:
-                                    Log.d("case101", "101接收完毕");
-                                    blueDataFrame[2] = blueRecvBytes[30];
-                                    blueDataFrame[3] = blueRecvBytes[31];
-                                    blueDataFrame[4] = blueRecvBytes[32];
-                                    blueDataFrame[5] = blueRecvBytes[33];
-                                    UWB102IDRangePermission = true;
-                                    break;
-                                case 102:
-                                    Log.d("case102", "102接收完毕");
-                                    blueDataFrame[6] = blueRecvBytes[30];
-                                    blueDataFrame[7] = blueRecvBytes[31];
-                                    blueDataFrame[8] = blueRecvBytes[32];
-                                    blueDataFrame[9] = blueRecvBytes[33];
-                                    UWB103IDRangePermission = true;
-                                    break;
-                                case 103:
-                                    Log.d("case103", "103接收完毕");
-                                    blueDataFrame[10] = blueRecvBytes[30];
-                                    blueDataFrame[11] = blueRecvBytes[31];
-                                    blueDataFrame[12] = blueRecvBytes[32];
-                                    blueDataFrame[13] = blueRecvBytes[33];
-                                    UWB104IDRangePermission = true;
-                                    break;
-                                case 104:
-                                    Log.d("case104", "104接收完毕");
-                                    blueDataFrame[14] = blueRecvBytes[30];
-                                    blueDataFrame[15] = blueRecvBytes[31];
-                                    blueDataFrame[16] = blueRecvBytes[32];
-                                    blueDataFrame[17] = blueRecvBytes[33];
-                                    rangeTimes--;
-                                    sendBlueDataFrameByTCP(blueDataFrame); //将数据帧发送至服务器
-                                    UWB101IDRangePermission = true;
-                                    UWB102IDRangePermission = false;
-                                    UWB103IDRangePermission = false;
-                                    UWB104IDRangePermission = false;
-                                    break;
-                                default:
-                                    Log.d("func blueRecv switch", "No such UWBNode");
-                                    break;
-                            }
-                            Log.d("blueDataFrame", blueDataFrame.toString());
-                        } else {
-                            Log.e("测距失败重新测距", String.valueOf(responseUWBNode));
-                            switch (responseUWBNode) {
-                                case 101:
-                                    UWB101IDRangePermission = true;
-                                    break;
-                                case 102:
-                                    UWB102IDRangePermission = true;
-                                    break;
-                                case 103:
-                                    UWB102IDRangePermission = true;
-                                    break;
-                                case 104:
-                                    UWB102IDRangePermission = true;
-                                    break;
-                                default:
-                                    UWB101IDRangePermission = true;
-                                    UWB102IDRangePermission = false;
-                                    UWB103IDRangePermission = false;
-                                    UWB104IDRangePermission = false;
-                                    break;
+                                    switch (responseUWBNode) {
+                                        case 101:
+                                            Log.d("case101", "101接收完毕");
+                                            blueDataFrame[2] = confirmAndDataFrame[30];
+                                            blueDataFrame[3] = confirmAndDataFrame[31];
+                                            blueDataFrame[4] = confirmAndDataFrame[32];
+                                            blueDataFrame[5] = confirmAndDataFrame[33];
+                                            UWB102IDRangePermission = true;
+                                            break;
+                                        case 102:
+                                            Log.d("case102", "102接收完毕");
+                                            blueDataFrame[6] = confirmAndDataFrame[30];
+                                            blueDataFrame[7] = confirmAndDataFrame[31];
+                                            blueDataFrame[8] = confirmAndDataFrame[32];
+                                            blueDataFrame[9] = confirmAndDataFrame[33];
+                                            UWB103IDRangePermission = true;
+                                            break;
+                                        case 103:
+                                            Log.d("case103", "103接收完毕");
+                                            blueDataFrame[10] = confirmAndDataFrame[30];
+                                            blueDataFrame[11] = confirmAndDataFrame[31];
+                                            blueDataFrame[12] = confirmAndDataFrame[32];
+                                            blueDataFrame[13] = confirmAndDataFrame[33];
+                                            UWB104IDRangePermission = true;
+                                            break;
+                                        case 104:
+                                            Log.d("case104", "104接收完毕");
+                                            blueDataFrame[14] = confirmAndDataFrame[30];
+                                            blueDataFrame[15] = confirmAndDataFrame[31];
+                                            blueDataFrame[16] = confirmAndDataFrame[32];
+                                            blueDataFrame[17] = confirmAndDataFrame[33];
+                                            rangeTimes--;
+                                            sendBlueDataFrameByTCP(blueDataFrame); //将数据帧发送至服务器
+                                            UWB101IDRangePermission = true;
+                                            UWB102IDRangePermission = false;
+                                            UWB103IDRangePermission = false;
+                                            UWB104IDRangePermission = false;
+                                            break;
+                                        default:
+                                            Log.d("func blueRecv switch", "No such UWBNode");
+                                            break;
+                                    }
+                                    Log.d("blueDataFrame", blueDataFrame.toString());
+                                } else {
+                                    Log.e("测距失败重新测距", String.valueOf(responseUWBNode));
+                                    switch (responseUWBNode) {
+                                        case 101:
+                                            UWB101IDRangePermission = true;
+                                            break;
+                                        case 102:
+                                            UWB102IDRangePermission = true;
+                                            break;
+                                        case 103:
+                                            UWB102IDRangePermission = true;
+                                            break;
+                                        case 104:
+                                            UWB102IDRangePermission = true;
+                                            break;
+                                        default:
+                                            UWB101IDRangePermission = true;
+                                            UWB102IDRangePermission = false;
+                                            UWB103IDRangePermission = false;
+                                            UWB104IDRangePermission = false;
+                                            break;
+                                    }
+                                }
+                                countNum = 0;
                             }
                         }
                     }
