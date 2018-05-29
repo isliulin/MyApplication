@@ -40,22 +40,22 @@
 
         <Button
             android:id="@+id/backToMainActivityButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="120dp"
+            android:layout_height="match_parent"
             android:onClick="backToMainActivity"
             android:text="返回主界面" />
 
         <Button
             android:id="@+id/openBlueButton"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:onClick="openBlue"
             android:text="打开蓝牙" />
 
         <Button
             android:id="@+id/searchBlueButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="143dp"
+            android:layout_height="match_parent"
             android:onClick="scanBlueDevices"
             android:text="搜索蓝牙设备" />
     </LinearLayout>
