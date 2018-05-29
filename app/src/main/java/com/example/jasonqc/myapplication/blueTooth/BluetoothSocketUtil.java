@@ -25,6 +25,13 @@ public class BluetoothSocketUtil extends Application {
     }
 
     public void closeBluetooth() {
+        if (bluetoothSocket != null) {
+            try {
+                bluetoothSocket.close();
+            } catch (IOException e) {
+                Log.e("closeBluetooth", "socket close 错误");
+            }
+        }
         if (mBluetoothAdapter == null)
             mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         mBluetoothAdapter.disable();
@@ -36,17 +43,5 @@ public class BluetoothSocketUtil extends Application {
 
     public void setmBluetoothAdapter(BluetoothAdapter mBluetoothAdapter) {
         this.mBluetoothAdapter = mBluetoothAdapter;
-    }
-
-    public void closeBlue() {
-        if (bluetoothSocket == null || mBluetoothAdapter == null)
-            return;
-        try {
-            bluetoothSocket.close();
-        } catch (IOException e) {
-            Log.e("closeBlue", "socket close 错误");
-            e.printStackTrace();
-        }
-        mBluetoothAdapter.disable();
     }
 }
