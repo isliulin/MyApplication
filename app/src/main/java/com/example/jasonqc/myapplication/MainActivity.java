@@ -276,8 +276,8 @@ public class MainActivity extends AppCompatActivity {
             toCRCbytes[i] = send_package[i + 4];
         }
         int CRCcodeInt = getCRC1021(toCRCbytes);// 获取int型校验码
-        send_package[17] = (byte) (CRCcodeInt & 0xff);
-        send_package[18] = (byte) ((CRCcodeInt >> 8) & 0xff);
+        send_package[17] = Integer.valueOf ((CRCcodeInt >> 8) & 0xff).byteValue();
+        send_package[18] = Integer.valueOf (CRCcodeInt & 0xff).byteValue();
         return send_package;
     }
 

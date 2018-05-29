@@ -29,7 +29,7 @@ public class BluetoothSocketUtil extends Application {
             try {
                 bluetoothSocket.close();
             } catch (IOException e) {
-                Log.e("closeBluetooth", "socket close 错误");
+                Log.d("closeBluetooth", "socket close 错误");
             }
         }
         if (mBluetoothAdapter == null)
