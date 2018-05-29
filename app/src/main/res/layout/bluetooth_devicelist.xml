@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#666"
+        android:paddingLeft="5dp"
+        android:text="已配对的设备"
+        android:textColor="#fff" />
+
+    <ListView
+        android:id="@+id/paired_devices"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:descendantFocusability="blocksDescendants" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#666"
+        android:paddingLeft="5dp"
+        android:text="新发现的设备："
+        android:textColor="#fff" />
+
+    <ListView
+        android:id="@+id/new_devices"
+        android:layout_width="match_parent"
+        android:layout_height="0dip"
+        android:layout_weight="2"
+        android:descendantFocusability="blocksDescendants" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/backToMainActivityButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="backToMainActivity"
+            android:text="返回主界面" />
+
+        <Button
+            android:id="@+id/openBlueButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="openBlue"
+            android:text="打开蓝牙" />
+
+        <Button
+            android:id="@+id/searchBlueButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="scanBlueDevices"
+            android:text="搜索蓝牙设备" />
+    </LinearLayout>
+
+
+</LinearLayout>
