@@ -118,8 +118,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void blueSendRangeRequest() {
+        Log.d("blueSendRangeRequest","进入");
         if (!isRanging) {
             exec.execute(() -> {
+                Log.d("blueSendRangeRequest","进入线程");
                 isRanging = true;
                 byte[] rangeRequireFrame = null;
                 BluetoothSocket bluetoothSocket = bluetoothSocketUtil.getBluetoothSocket();
