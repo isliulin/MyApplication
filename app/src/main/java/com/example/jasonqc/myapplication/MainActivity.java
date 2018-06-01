@@ -3,6 +3,7 @@ package com.example.jasonqc.myapplication;
 import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
@@ -52,6 +53,8 @@ public class MainActivity extends AppCompatActivity {
     Socket clientSocket = null;
     BluetoothSocketUtil bluetoothSocketUtil;
 
+    Handler uiHandler = new Handler();
+
 
     /**************************************/
     @Override
@@ -88,6 +91,12 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     clientSocket = new Socket(ipEditText.getText().toString(), Integer.parseInt(portEditText.getText().toString()));
                     Log.d("connectToTcpHost", String.valueOf(clientSocket.isConnected()));
+                    uiHandler.post(() -> {
+                        if (clientSocket.isConnected())
+                            Toast.makeText(getApplicationContext(), "TCP连接成功", Toast.LENGTH_SHORT).show();
+                        else
+                            Toast.makeText(getApplicationContext(), "TCP连接失败", Toast.LENGTH_SHORT).show();
+                    });
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -118,10 +127,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void blueSendRangeRequest() {
-        Log.d("blueSendRangeRequest","进入");
+        Log.d("blueSendRangeRequest", "进入");
         if (!isRanging) {
             exec.execute(() -> {
-                Log.d("blueSendRangeRequest","进入线程");
+                Log.d("blueSendRangeRequest", "进入线程");
                 isRanging = true;
                 byte[] rangeRequireFrame = null;
                 BluetoothSocket bluetoothSocket = bluetoothSocketUtil.getBluetoothSocket();

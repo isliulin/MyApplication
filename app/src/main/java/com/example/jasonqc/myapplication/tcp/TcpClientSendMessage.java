@@ -20,7 +20,7 @@ public class TcpClientSendMessage implements Runnable {
         DataOutputStream dos = null;
         try {
             dos = new DataOutputStream(clientSocket.getOutputStream());
-            Log.d("tcpSendToHost",sendMessage.toString());
+            Log.d("tcpSendToHost", new String(sendMessage,"ISO-8859-1"));
             dos.write(sendMessage);
         } catch (IOException e) {
             e.printStackTrace();

@@ -116,8 +116,8 @@ public class BluetoothFindListActivity extends Activity {
     public void backToMainActivity(View view) {
         unregisterReceiver(blueScanReceiver);
         //创建一个意图
-        Intent intent = new Intent(BluetoothFindListActivity.this, MainActivity.class);
-        startActivity(intent);
+        //Intent intent = new Intent(BluetoothFindListActivity.this, MainActivity.class);
+       // startActivity(intent);
         finish();//结束当前的Activity
         //如果没有上面的finish()，那么当跳转到MainActivity之后，SecondActivity只会onStop,不会ondestroy。即仍然还在栈中
         //需要注意的是，当它跳到MainActivity时，会去重新创建一个新的MainActivity，即执行MainActivity中的onCreate()方法;
