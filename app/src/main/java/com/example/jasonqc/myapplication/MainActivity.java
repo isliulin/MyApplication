@@ -202,7 +202,7 @@ public class MainActivity extends AppCompatActivity {
         Log.d("蓝牙接收开启", "blueRecv");
         exec.execute(() -> {
             int countNum = 0;
-            byte[] confirmAndDataFrame = new byte[68];
+            byte[] confirmAndDataFrame = new byte[100];
             BluetoothSocket bluetoothSocket = bluetoothSocketUtil.getBluetoothSocket();
             InputStream bluetoothSocketInputStream;
             byte[] blueRecvBytes = new byte[1024];
@@ -211,12 +211,12 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     bluetoothSocketInputStream = bluetoothSocket.getInputStream();
                     while ((len = bluetoothSocketInputStream.read(blueRecvBytes)) != -1) {
+                        Log.d("len", String.valueOf(len));
                         for (int i = 0; i < len; i++) {
                             confirmAndDataFrame[countNum++] = blueRecvBytes[i];
-                            if (countNum == 68 && confirmAndDataFrame[0] == 0x0A &&
-                                    confirmAndDataFrame[1] == 0x0A && confirmAndDataFrame[15] == 0x0A
-                                    && confirmAndDataFrame[16] == 0x0A) {
+                            if (countNum == 72 ) {
 //                                一帧接收完成,并且帧头符合要求
+                                //sendBlueDataFrameByTCP(confirmAndDataFrame); //将数据帧发送至服务器
                                 int responseUWBNode = ((confirmAndDataFrame[22] & 0xff) << 24) + ((confirmAndDataFrame[23] & 0xff)
                                         << 16) + ((confirmAndDataFrame[24] & 0xff) << 8) + (confirmAndDataFrame[25] & 0xff);
                                 int PRMerror = (confirmAndDataFrame[43] & 0xff) << 8 + confirmAndDataFrame[44] & 0xff;
@@ -268,7 +268,6 @@ public class MainActivity extends AppCompatActivity {
                                             Log.d("func blueRecv switch", "No such UWBNode");
                                             break;
                                     }
-                                    Log.d("blueDataFrame", blueDataFrame.toString());
                                 } else {
                                     Log.e("测距失败重新测距", String.valueOf(responseUWBNode));
                                     switch (responseUWBNode) {
