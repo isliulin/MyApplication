@@ -42,9 +42,6 @@ public class MainActivity extends AppCompatActivity {
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x023};
     /*****************************************/
     /*activity_main.xml id declare*/
-    EditText sendTcpTxt;
-    EditText ipEditText;
-    EditText portEditText;
     Button blueRecvSwitch;
     Button oneblueSendButton;
 
@@ -61,53 +58,35 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        sendTcpTxt = findViewById(R.id.sendTcpTxt);
-        ipEditText = findViewById(R.id.ipEditText);
-        portEditText = findViewById(R.id.portEditText);
         blueRecvSwitch = findViewById(R.id.blueRecvSwitch);
         oneblueSendButton = findViewById(R.id.oneblueSendButton);
         bluetoothSocketUtil = (BluetoothSocketUtil) getApplication();
     }
 
-    public void sendTcpData(View view) {
-        if (clientSocket == null) {
-            Toast.makeText(this, "请先建立连接", Toast.LENGTH_SHORT).show();
-        } else {
-            if (TextUtils.isEmpty(sendTcpTxt.getText())) {
-                Toast.makeText(this, "请输入数据", Toast.LENGTH_SHORT).show();
-            } else {
-                exec.execute(new TcpClientSendMessage(sendTcpTxt.getText().toString().getBytes(), clientSocket));
-            }
-        }
-    }
-
     public void connectToTcpHost(View view) {
-
-        if (TextUtils.isEmpty(ipEditText.getText()) || TextUtils.isEmpty(portEditText.getText())) {
-            Toast.makeText(this, "请输入ip 和 port", Toast.LENGTH_SHORT).show();
-        } else {
-            Log.d("connecToTcpHost", ipEditText.getText().toString() + "," + portEditText.getText().toString());
-            exec.execute(() -> {
-                try {
-                    clientSocket = new Socket(ipEditText.getText().toString(), Integer.parseInt(portEditText.getText().toString()));
-                    Log.d("connectToTcpHost", String.valueOf(clientSocket.isConnected()));
-                    uiHandler.post(() -> {
-                        if (clientSocket.isConnected())
-                            Toast.makeText(getApplicationContext(), "TCP连接成功", Toast.LENGTH_SHORT).show();
-                        else
-                            Toast.makeText(getApplicationContext(), "TCP连接失败", Toast.LENGTH_SHORT).show();
-                    });
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            });
-        }
+        exec.execute(() -> {
+            try {
+                clientSocket = new Socket("10.0.0.238", 10007);
+                Log.d("connectToTcpHost", String.valueOf(clientSocket.isConnected()));
+                uiHandler.post(() -> {
+                    if (clientSocket.isConnected())
+                        Toast.makeText(getApplicationContext(), "TCP连接成功", Toast.LENGTH_SHORT).show();
+                    else
+                        Toast.makeText(getApplicationContext(), "TCP连接失败", Toast.LENGTH_SHORT).show();
+                });
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     public void disconnectToTcpHost(View view) {
         try {
-            if (clientSocket == null)
+            if (clientSocket == null){
+                Toast.makeText(getApplicationContext(), "请先建立连接", Toast.LENGTH_SHORT).show();
                 return;
+            }
+
             clientSocket.close();
             clientSocket = null;
             Log.d("disconnectToTcpHost", "disconnect");
@@ -214,7 +193,7 @@ public class MainActivity extends AppCompatActivity {
                         Log.d("len", String.valueOf(len));
                         for (int i = 0; i < len; i++) {
                             confirmAndDataFrame[countNum++] = blueRecvBytes[i];
-                            if (countNum == 72 ) {
+                            if (countNum == 72) {
 //                                一帧接收完成,并且帧头符合要求
                                 //sendBlueDataFrameByTCP(confirmAndDataFrame); //将数据帧发送至服务器
                                 int responseUWBNode = ((confirmAndDataFrame[22] & 0xff) << 24) + ((confirmAndDataFrame[23] & 0xff)
